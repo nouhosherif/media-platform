@@ -1,0 +1,92 @@
+.reference-feed { min-height: 100vh; background: #f3f5f7; color: #101114; }
+.reference-feed-shell {
+  container-type: inline-size;
+  --feed-gutter: clamp(13px, 3.4cqw, 22px);
+  --feed-copy: clamp(14px, 3.8cqw, 19px);
+  --feed-muted: #81858f;
+  width: 100%; max-width: 640px; min-height: 100vh; margin-inline: auto;
+  background: #fafbfc; padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+.reference-feed .feed-header { position: relative; padding: clamp(20px, 5cqw, 30px) clamp(17px, 4.4cqw, 28px) 16px; }
+.reference-feed .feed-toolbar { display: flex; align-items: center; justify-content: space-between; }
+.reference-feed .feed-title { font-size: clamp(27px, 6.7cqw, 36px); font-weight: 750; letter-spacing: -.04em; line-height: 1; }
+.reference-feed .feed-header-action {
+  display: grid; place-items: center; width: clamp(44px, 10.9cqw, 56px); height: clamp(44px, 10.9cqw, 56px);
+  border-radius: clamp(12px, 2.8cqw, 16px); background: #fcfcfd; box-shadow: 0 3px 14px #2023300a;
+}
+.reference-feed .feed-header-action svg { width: 24px; height: 24px; }
+.reference-feed .feed-create { background: #262729; color: white; }
+.reference-feed .feed-search { position: relative; display: block; margin-top: 16px; }
+.reference-feed .feed-search > svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; color: #5e646f; pointer-events: none; }
+.reference-feed .feed-search input {
+  width: 100%; height: clamp(42px, 10.6cqw, 56px); border: 1px solid transparent; border-radius: clamp(18px, 4.5cqw, 24px);
+  background: #eff0f4; padding: 0 16px 0 50px; outline: none; font-size: clamp(16px, 3.8cqw, 20px);
+}
+.reference-feed .feed-search input::placeholder { color: #777c86; opacity: 1; }
+.reference-feed .feed-search input:focus-visible { border-color: #8b919c; box-shadow: 0 0 0 3px #e2e5eb; }
+.reference-feed .feed-posts { display: grid; gap: 16px; padding: 0 var(--feed-gutter); }
+.reference-feed .feed-card {
+  min-width: 0; background: #fff; border: 0; border-radius: clamp(16px, 4cqw, 24px);
+  box-shadow: 0 5px 22px #24273508; padding-bottom: clamp(14px, 3.4cqw, 22px);
+}
+.reference-feed .feed-author-header { display: flex; align-items: center; gap: 10px; padding: clamp(12px, 3.2cqw, 20px) clamp(16px, 4cqw, 24px); }
+.reference-feed .feed-author { display: flex; align-items: center; gap: clamp(14px, 3.6cqw, 20px); min-width: 0; flex: 1; }
+.reference-feed .feed-avatar {
+  flex-shrink: 0; display: grid; place-items: center; overflow: hidden; border-radius: 50%;
+  width: clamp(50px, 12.7cqw, 64px); height: clamp(50px, 12.7cqw, 64px);
+  background: #d8e8ff; color: #145d9c; font-size: clamp(23px, 5.5cqw, 30px); font-weight: 700;
+}
+.reference-feed .feed-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.reference-feed .feed-avatar svg { width: 25px; height: 25px; }
+.reference-feed .feed-author-copy { min-width: 0; }
+.reference-feed .feed-author-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(16px, 4cqw, 21px); font-weight: 700; line-height: 1.3; }
+.reference-feed .feed-date { display: block; margin-top: 3px; color: var(--feed-muted); font-size: clamp(13px, 3.5cqw, 17px); }
+.reference-feed .feed-menu { position: relative; flex-shrink: 0; }
+.reference-feed .feed-more { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: #f8f8fa; }
+.reference-feed .feed-more svg { width: 22px; height: 22px; }
+.reference-feed .feed-menu-panel {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 10; width: 180px; padding: 6px;
+  border: 1px solid #eeeef2; border-radius: 14px; background: #fff; box-shadow: 0 8px 30px #2023301a;
+}
+.reference-feed .feed-menu-panel :is(a, button) { display: block; width: 100%; padding: 10px; border-radius: 9px; text-align: left; font-size: 14px; }
+.reference-feed .feed-menu-panel :is(a, button):hover { background: #f4f5f7; }
+.reference-feed .feed-media { margin: 0 clamp(6px, 1.5cqw, 10px); border-radius: clamp(15px, 3.8cqw, 22px); overflow: hidden; background: #eff1f5; }
+.reference-feed .feed-media > :is(img, video) { display: block; width: 100%; aspect-ratio: 1.075; object-fit: cover; }
+.reference-feed .feed-media video { object-fit: contain; background: #111214; }
+.reference-feed .feed-footer { padding: 0 clamp(16px, 4cqw, 24px); }
+.reference-feed .feed-actions { display: flex; align-items: center; gap: clamp(16px, 4.4cqw, 26px); min-height: 48px; padding-top: 4px; }
+.reference-feed .feed-action { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; flex-shrink: 0; }
+.reference-feed .feed-action svg { width: 24px; height: 24px; }
+.reference-feed .feed-action span { color: var(--feed-muted); font-size: clamp(14px, 3.6cqw, 18px); font-weight: 400; }
+.reference-feed .feed-like[aria-pressed="true"] svg { color: #f15d76; }
+.reference-feed .feed-bookmark { margin-left: auto; }
+.reference-feed .feed-bookmark svg { width: 22px; }
+.reference-feed .feed-caption { margin-top: 5px; font-size: var(--feed-copy); line-height: 1.45; overflow-wrap: anywhere; white-space: pre-wrap; }
+.reference-feed .feed-caption-author { margin-right: 6px; font-weight: 700; }
+.reference-feed .feed-comments-link { display: flex; align-items: center; gap: 5px; margin-top: 8px; color: var(--feed-muted); font-size: clamp(13px, 3.5cqw, 17px); line-height: 1.5; }
+.reference-feed .feed-comments-link svg { width: 14px; height: 14px; }
+.reference-feed .feed-feedback { margin-top: 10px; font-size: 13px; color: #5d6370; }
+.reference-feed .feed-feedback[role="alert"] { color: #b4233c; }
+.reference-feed .feed-comments { display: grid; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #eff0f4; font-size: 14px; }
+.reference-feed .feed-comment-entry { overflow-wrap: anywhere; }
+.reference-feed .feed-comment-entry strong { margin-right: 6px; }
+.reference-feed .feed-comment-form { display: flex; gap: 8px; margin-top: 12px; }
+.reference-feed .feed-comment-form input { flex: 1; min-width: 0; height: 44px; padding: 0 12px; border-radius: 14px; border: 1px solid #e5e7eb; background: #f8f9fb; }
+.reference-feed .feed-comment-form button { border-radius: 14px; padding: 0 14px; background: #262729; color: #fff; }
+.reference-feed .feed-news { padding: 0 16px 12px; }
+.reference-feed .feed-news > span { color: #81858f; font-size: 11px; letter-spacing: .12em; }
+.reference-feed .feed-news h2 { font-size: 22px; font-weight: 700; }
+.reference-feed button:disabled { opacity: .55; }
+.reference-feed :is(button, a, input):focus-visible { outline: 2px solid #6a778c; outline-offset: 3px; }
+.reference-feed-nav {
+  position: fixed; z-index: 30; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 640px;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: #fffffffa;
+  border-radius: 28px 28px 0 0; box-shadow: 0 -3px 22px #24273506;
+  padding: 12px 8px max(12px, env(safe-area-inset-bottom)); backdrop-filter: blur(12px);
+}
+.reference-feed-nav a { position: relative; display: grid; justify-items: center; gap: 5px; padding-bottom: 10px; color: #737983; font-size: 11px; line-height: 1.2; }
+.reference-feed-nav svg { width: 24px; height: 24px; color: #565e68; }
+.reference-feed-nav a[aria-current="page"] { color: #08090b; font-weight: 700; }
+.reference-feed-nav a[aria-current="page"] svg { color: #08090b; }
+.reference-feed-nav a[aria-current="page"]::after { position: absolute; bottom: 0; width: 22px; height: 4px; border-radius: 3px; background: #08090b; content: ""; }
+@media (prefers-reduced-motion: reduce) { .reference-feed * { transition: none; } }

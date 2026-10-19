@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="pastel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0edff"/>
+      <stop offset="0.48" stop-color="#e5eeff"/>
+      <stop offset="1" stop-color="#dcdffd"/>
+    </linearGradient>
+    <radialGradient id="lavender" cx="0.3" cy="0.8" r="0.75">
+      <stop stop-color="#e2dcfc" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#e2dcfc" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path id="wave" d="M0 0H800V230C652 270 695 480 546 480H254C105 480 148 270 0 230Z" fill="url(#pastel)"/>
+  <path d="M0 0H800V230C652 270 695 480 546 480H254C105 480 148 270 0 230Z" fill="url(#lavender)"/>
+</svg>

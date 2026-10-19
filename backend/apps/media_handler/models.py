@@ -6,6 +6,7 @@ from django.conf import settings
 
 # ✅ MUST BE HERE FIRST
 def user_media_path(instance, filename):
+    # Historical migrations import this path; do not move or rename it.
     ext = filename.split('.')[-1]
     filename = f"{uuid.uuid4()}.{ext}"
     return os.path.join(f"user_{instance.user.id}", filename)
@@ -13,9 +14,14 @@ def user_media_path(instance, filename):
 
 # ✅ THEN your model
 class Media(models.Model):
+    CONTENT_TYPE = (
+        ('post', 'Post'),
+        ('news', 'News article'),
+    )
     MEDIA_TYPE = (
         ('image', 'Image'),
         ('video', 'Video'),
+        ('text', 'Text'),
     )
 
     user = models.ForeignKey(
@@ -24,10 +30,23 @@ class Media(models.Model):
         related_name='media'
     )
 
-    file = models.FileField(upload_to=user_media_path)
+    title = models.CharField(blank=True, max_length=300)
+    content_type = models.CharField(
+        choices=CONTENT_TYPE,
+        default='post',
+        max_length=10,
+    )
+    file = models.FileField(upload_to=user_media_path, null=True, blank=True)
+    caption = models.TextField(blank=True, max_length=10000)
     media_type = models.CharField(max_length=10, choices=MEDIA_TYPE, blank=True)
     file_size = models.PositiveIntegerField(null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['-uploaded_at', '-id'], name='media_feed_time_idx'),
+            models.Index(fields=['user', '-uploaded_at', '-id'], name='media_author_time_idx'),
+        ]
 
     def save(self, *args, **kwargs):
         if self.file:
@@ -38,6 +57,9 @@ class Media(models.Model):
                 self.media_type = 'image'
             elif name.endswith(('.mp4', '.mov', '.avi', '.mkv')):
                 self.media_type = 'video'
+        elif self.caption:
+            self.file_size = None
+            self.media_type = 'text'
 
         super().save(*args, **kwargs)
 
@@ -71,3 +93,11 @@ class MediaView(models.Model):
     commented = models.BooleanField(default=False)
 
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=['user', 'media', '-updated_at', '-id'],
+                name='engagement_lookup_idx',
+            ),
+        ]

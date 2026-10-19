@@ -1,145 +1,134 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import API from "../api";
-import Icon from "./Icon";
+import FeedIcon from "../features/feed/FeedIcon";
 
 const PostCard = ({ post }) => {
-  const [likes, setLikes] = useState(post.likes_count || 0);
+  const [likes, setLikes] = useState(post.likes_count ?? 0);
   const [liked, setLiked] = useState(false);
+  const [liking, setLiking] = useState(false);
   const [comment, setComment] = useState("");
-  const [showComment, setShowComment] = useState(false);
-  const [commentsCount, setCommentsCount] = useState(post.comments?.length || 0);
-
-  const username = post.user || "media user";
-  const initial = username.charAt(0).toUpperCase() || "M";
+  const [comments, setComments] = useState(post.comments || []);
+  const [showComments, setShowComments] = useState(false);
+  const [commenting, setCommenting] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+  const menuRef = useRef(null);
+  const menuButtonRef = useRef(null);
+  const caption = String(post.caption || "").trim();
+  const title = String(post.title || "").trim();
+  const fileUrl = String(post.file || "").trim();
+  const displayName = String(post.user_full_name || post.user || "").trim();
+  const profilePath = post.user_id ? "/profile/" + post.user_id : null;
   const uploadedAt = post.uploaded_at ? new Date(post.uploaded_at) : null;
-  const timeLabel = uploadedAt
-    ? uploadedAt.toLocaleDateString(undefined, { month: "short", day: "numeric" })
-    : "Just now";
+  const timeLabel = uploadedAt && !Number.isNaN(uploadedAt.getTime())
+    ? uploadedAt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: uploadedAt.getFullYear() === new Date().getFullYear() ? undefined : "numeric" }) : "";
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const dismiss = (event) => { if (!menuRef.current?.contains(event.target)) setMenuOpen(false); };
+    const escape = (event) => {
+      if (event.key === "Escape") { setMenuOpen(false); menuButtonRef.current?.focus(); }
+    };
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("pointerdown", dismiss); document.removeEventListener("keydown", escape); };
+  }, [menuOpen]);
 
   const handleLike = async () => {
+    if (liking) return;
+    setLiking(true);
+    setFeedback(null);
     try {
-      await API.post(`media/like/${post.id}/`);
-      setLikes((currentLikes) => (liked ? Math.max(currentLikes - 1, 0) : currentLikes + 1));
-      setLiked((currentLiked) => !currentLiked);
-    } catch (err) {
-      console.error(err);
-    }
+      const { data } = await API.post("media/like/" + post.id + "/");
+      const nowLiked = data.message === "Liked";
+      setLikes((value) => nowLiked ? value + 1 : Math.max(value - 1, 0));
+      setLiked(nowLiked);
+    } catch {
+      setFeedback({ error: true, text: "Could not update this like. Please try again." });
+    } finally { setLiking(false); }
   };
 
-  const handleComment = async () => {
-    if (!comment.trim()) {
-      return;
-    }
-
+  const handleComment = async (event) => {
+    event.preventDefault();
+    if (!comment.trim() || commenting) return;
+    setCommenting(true);
+    setFeedback(null);
     try {
-      await API.post(`media/comment/${post.id}/`, {
-        text: comment.trim(),
-      });
+      const { data } = await API.post("media/comment/" + post.id + "/", { text: comment.trim() });
+      setComments((current) => [...current, data]);
       setComment("");
-      setCommentsCount((currentCount) => currentCount + 1);
-      setShowComment(false);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch {
+      setFeedback({ error: true, text: "Could not post your comment. Please try again." });
+    } finally { setCommenting(false); }
   };
 
-  const handleShare = async () => {
+  const handleShare = async (copyOnly = false) => {
+    setMenuOpen(false);
+    setFeedback(null);
+    const url = window.location.origin + "/feed#post-" + post.id;
     try {
-      await navigator.clipboard?.writeText(`${window.location.origin}/feed#post-${post.id}`);
-    } catch (err) {
-      console.error(err);
+      if (!copyOnly && navigator.share) await navigator.share({ text: caption, url });
+      else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setFeedback({ text: "Post link copied." });
+      } else setFeedback({ text: "Post link: " + url });
+    } catch (error) {
+      if (error.name !== "AbortError") setFeedback({ error: true, text: "Could not share this post. Please try again." });
     }
   };
 
-  return (
-    <article
-      className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]"
-      id={`post-${post.id}`}
-    >
-      <header className="flex items-center justify-between px-4 py-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-sky-100 text-sm font-bold text-sky-700">
-            {initial}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-slate-950">{username}</p>
-            <p className="text-xs text-slate-500">{timeLabel}</p>
-          </div>
-        </div>
+  const author = <>
+    <span className="feed-avatar">{post.user_profile_picture
+      ? <img alt="" src={post.user_profile_picture} />
+      : displayName.charAt(0).toUpperCase() || <FeedIcon name="user" />}</span>
+    <span className="feed-author-copy">
+      {displayName && <span className="feed-author-name block">{displayName}</span>}
+      {timeLabel && <time className="feed-date" dateTime={post.uploaded_at}>{timeLabel}</time>}
+    </span>
+  </>;
 
-        <button
-          aria-label="More options"
-          className="grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100"
-          type="button"
-        >
-          <Icon name="more" />
-        </button>
-      </header>
-
-      <div className="aspect-[4/5] bg-slate-100">
-        {post.media_type === "image" ? (
-          <img alt="" className="h-full w-full object-cover" src={post.file} />
-        ) : (
-          <video className="h-full w-full object-cover" controls>
-            <source src={post.file} />
-          </video>
-        )}
+  return <article className="feed-card" id={"post-" + post.id}>
+    <header className="feed-author-header">
+      {profilePath ? <Link className="feed-author" to={profilePath}>{author}</Link> : <div className="feed-author">{author}</div>}
+      <div className="feed-menu" ref={menuRef}>
+        <button aria-label="Post options" aria-expanded={menuOpen} className="feed-more" onClick={() => setMenuOpen((value) => !value)} ref={menuButtonRef} type="button"><FeedIcon name="more" /></button>
+        {menuOpen && <div className="feed-menu-panel">
+          {profilePath && <Link onClick={() => setMenuOpen(false)} to={profilePath}>View profile</Link>}
+          <button onClick={() => handleShare(true)} type="button">Copy post link</button>
+        </div>}
       </div>
+    </header>
 
-      <footer className="space-y-3 px-4 py-3">
-        <div className="grid grid-cols-3 gap-2">
-          <button
-            className={`flex h-10 items-center justify-center gap-2 rounded-lg border text-sm font-semibold ${
-              liked
-                ? "border-rose-200 bg-rose-50 text-rose-600"
-                : "border-slate-200 bg-white text-slate-700"
-            }`}
-            onClick={handleLike}
-            type="button"
-          >
-            <Icon name="heart" className="h-4 w-4" />
-            <span>{likes}</span>
-          </button>
+    {post.content_type === "news" && <div className="feed-news"><span>NEWS</span>{title && <h2>{title}</h2>}</div>}
+    {fileUrl && <div className="feed-media">
+      {post.media_type === "image" ? <img alt={title || caption} src={fileUrl} />
+        : <video controls playsInline preload="metadata"><source src={fileUrl} /></video>}
+    </div>}
 
-          <button
-            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-700"
-            onClick={() => setShowComment((current) => !current)}
-            type="button"
-          >
-            <Icon name="message" className="h-4 w-4" />
-            <span>{commentsCount}</span>
-          </button>
-
-          <button
-            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-700"
-            onClick={handleShare}
-            type="button"
-          >
-            <Icon name="share" className="h-4 w-4" />
-            <span>Share</span>
-          </button>
+    <footer className="feed-footer">
+      <div className="feed-actions">
+        <button aria-label={liked ? "Unlike post" : "Like post"} aria-pressed={liked} className="feed-action feed-like" disabled={liking} onClick={handleLike} type="button"><FeedIcon filled={liked} name="heart" /><span>{likes}</span></button>
+        <button aria-label="Comment on post" aria-expanded={showComments} className="feed-action" onClick={() => setShowComments((value) => !value)} type="button"><FeedIcon name="message" /><span>{comments.length}</span></button>
+        <button aria-label="Share post" className="feed-action" onClick={() => handleShare()} type="button"><FeedIcon name="send" /></button>
+        <button aria-label="Save post — unavailable" title="Saving posts is not available yet" className="feed-action feed-bookmark" onClick={() => setFeedback({ text: "Saving posts is not available yet." })} type="button"><FeedIcon name="bookmark" /></button>
+      </div>
+      {caption && <p className="feed-caption">
+        {displayName && (profilePath ? <Link className="feed-caption-author" to={profilePath}>{displayName}</Link> : <strong className="feed-caption-author">{displayName}</strong>)}{caption}
+      </p>}
+      {comments.length > 0 && <button className="feed-comments-link" onClick={() => setShowComments(true)} type="button">View all {comments.length} {comments.length === 1 ? "comment" : "comments"}<FeedIcon name="chevron" /></button>}
+      {showComments && <>
+        <div aria-label="Comments" className="feed-comments">
+          {comments.length ? comments.map((item) => <p className="feed-comment-entry" key={item.id}><strong>{item.user}</strong>{item.text}</p>) : <p>No comments yet.</p>}
         </div>
-
-        {showComment && (
-          <div className="flex gap-2">
-            <input
-              className="h-10 min-w-0 flex-1 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-              onChange={(event) => setComment(event.target.value)}
-              placeholder="Add a comment"
-              value={comment}
-            />
-            <button
-              className="h-10 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white"
-              onClick={handleComment}
-              type="button"
-            >
-              Post
-            </button>
-          </div>
-        )}
-      </footer>
-    </article>
-  );
+        <form className="feed-comment-form" onSubmit={handleComment}>
+          <input aria-label="Comment" onChange={(event) => setComment(event.target.value)} placeholder="Add a comment" value={comment} />
+          <button disabled={commenting || !comment.trim()} type="submit">{commenting ? "Posting…" : "Post"}</button>
+        </form>
+      </>}
+      {feedback && <p className="feed-feedback" role={feedback.error ? "alert" : "status"}>{feedback.text}</p>}
+    </footer>
+  </article>;
 };
 
 export default PostCard;
